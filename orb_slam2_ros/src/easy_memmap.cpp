@@ -28,6 +28,13 @@ json MultiImagesMemmap::init_labels(void){
     return json::parse(labels);
 }
 
+
+size_t MultiImagesMemmap::getFilesize(const char* filename) {
+    struct stat st;
+    stat(filename, &st);
+    return st.st_size;
+}
+
 Mat MultiImagesMemmap::init_memmap_r(void){
 
     string settings = get_full_name() + "/" + CONFIG;

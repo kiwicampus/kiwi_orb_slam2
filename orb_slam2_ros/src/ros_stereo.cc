@@ -38,6 +38,23 @@
 
 #include "easy_memmap.h"
 
+#include <image_geometry/pinhole_camera_model.h>
+#include <camera_info_manager/camera_info_manager.h>
+
+// --- Env Variables -------
+const float VIDEO_WIDTH = getenv("VIDEO_WIDTH") == NULL ? 320 : std::atof(getenv("VIDEO_WIDTH"));
+const float VIDEO_HEIGHT = getenv("VIDEO_HEIGHT") == NULL ? 180 : std::atof(getenv("VIDEO_HEIGHT"));
+std::string DISTORTION_PATH = getenv("DISTORSION_PATH") == NULL ? "/usr/src/app/" : getenv("DISTORSION_PATH");
+std::string MEMMAP_PATH = getenv("MEMMAP_PATH") == NULL ? "/tmp" : getenv("MEMMAP_PATH");
+
+// ------------------ OpenCV matrices stuff ----------------
+Mat l_image, l_image_undist, r_image, r_image_undist;
+// Map matrices for undistorting images
+Mat map1,map2;
+
+// Functions ---------------
+void get_rectify_params_calibration(Mat &map1, Mat &map2, camera_info_manager::CameraInfoManager &cinfo_manager);
+
 using namespace std;
 
 class ImageGrabber
@@ -63,7 +80,6 @@ int main(int argc, char **argv)
         ros::shutdown();
         return 1;
     }    
-
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     const double freq = 100.0;
     // Set up a namespace for topics
@@ -71,6 +87,16 @@ int main(int argc, char **argv)
     ORB_SLAM2::System SLAM(make_unique<ROSSystemBuilder>(argv[1], argv[2], ORB_SLAM2::System::STEREO, freq, nh));
 
     ImageGrabber igb(&SLAM);
+
+
+
+    MultiImagesMemmap video_map("main_stream", MEMMAP_PATH);
+    video_map.wait_until_available();
+
+    camera_info_manager::CameraInfoManager cinfo_manager(nh);
+    get_rectify_params_calibration(map1, map2, cinfo_manager);
+
+
 
     stringstream ss(argv[3]);
 	ss >> boolalpha >> igb.do_rectify;
@@ -183,3 +209,39 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
 }
 
 
+void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_manager::CameraInfoManager &cinfo_manager){
+
+  // Calibration Parameters
+  Matx<double, 3, 3> camm;
+  Mat dist;  
+
+  // Basic variables
+  std::string camera_parameters_filename, camera_parameters_path;
+  float aspect_ratio;
+
+  // Variables for reading camera parameters into CV mats
+  image_geometry::PinholeCameraModel model_;
+
+  aspect_ratio = VIDEO_WIDTH/VIDEO_HEIGHT;
+
+  if (aspect_ratio < 1.777) // -> 4/3.0=1.333 en 16/9=1.777
+    camera_parameters_filename = "camera_paremeters_640_480.yaml";
+  else
+    camera_parameters_filename = "camera_paremeters_640_360.yaml";
+
+  camera_parameters_path = "file://" + DISTORTION_PATH + camera_parameters_filename;
+
+  cinfo_manager.loadCameraInfo(camera_parameters_path);
+
+  sensor_msgs::CameraInfo cinfo_msg(cinfo_manager.getCameraInfo());
+
+  // Update the camera model
+  model_.fromCameraInfo(cinfo_msg);
+
+  dist = model_.distortionCoeffs();
+  camm = model_.intrinsicMatrix();
+
+  // Calcualte actual map1 and map2 matrices
+  initUndistortRectifyMap(camm, dist, Mat(), camm, Size(cinfo_msg.width,cinfo_msg.height), CV_8UC1, map1, map2);
+
+}

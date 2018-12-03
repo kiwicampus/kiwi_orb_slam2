@@ -18,17 +18,6 @@ using namespace std;
 using json = nlohmann::json;
 
 
-size_t getFilesize(const char* filename) {
-    struct stat st;
-    stat(filename, &st);
-    return st.st_size;
-}
-
-
-char* PREFIX = (char*) "easy_memmap";
-char* CONFIG = (char*) "shape"; 
-char* DATA = (char*) "data";
-char* LABELS_FILENAME = (char*) "meta.json";
 
 class MultiImagesMemmap {
     public:
@@ -43,6 +32,11 @@ class MultiImagesMemmap {
         Mat memmap_file;
         int height, width, channels;
         bool initialized;
+        char* PREFIX = (char*) "easy_memmap";
+        char* CONFIG = (char*) "shape"; 
+        char* DATA = (char*) "data";
+        char* LABELS_FILENAME = (char*) "meta.json";
+        size_t getFilesize(const char* filename);
 
     private:
         string get_full_name(void);

@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   octomap_ros
+  camera_info_manager
 )
 
 # Generate messages in the 'msg' folder
@@ -87,6 +88,7 @@ target_link_libraries(Mono
 
 # Node for stereo camera
 add_executable(Stereo
+  src/easy_memmap.cpp
   src/ros_stereo.cc
   src/ROSPublisher.cpp
 )
