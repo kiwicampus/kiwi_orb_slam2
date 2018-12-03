@@ -1,0 +1,122 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters. Adjust them!
+#--------------------------------------------------------------------------------------------
+
+# Camera calibration and distortion parameters (OpenCV) 
+Camera.fx: 378.0058966105689
+Camera.fy: 378.1168755498327
+Camera.cx: 329.85017689276896
+Camera.cy: 167.77367811595352
+
+#Camera.k1: -0.335524
+#Camera.k2: 0.082469
+#Camera.p1: 0.002508
+#camera.p2: 0.003777
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+camera.p2: 0.0
+
+
+Camera.width: 640
+Camera.height: 360
+
+# Camera frames per second 
+Camera.fps: 30.0
+
+# stereo baseline times fx
+Camera.bf: 37.801
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+
+# Close/Far threshold. Baseline times.
+ThDepth: 50
+
+#--------------------------------------------------------------------------------------------
+# Stereo Rectification. Only if you need to pre-rectify the images.
+# Camera.fx, .fy, etc must be the same as in LEFT.P
+#--------------------------------------------------------------------------------------------
+LEFT.height: 360
+LEFT.width: 640
+LEFT.D: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [-0.335524, 0.082469, 0.002508, -0.003777, 0.000000]
+LEFT.K: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [378.0058966105689, 0.0, 329.85017689276896, 0.0, 378.1168755498327, 167.77367811595352, 0.0, 0.0, 1.0]
+LEFT.R:  !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.9920081353335682, -0.0023352881559174678, 0.12615231215180225, 0.0030502945481618716, 0.9999803602452201, -0.005474927123637246, -0.12613704901886033, 0.005815973957001223, 0.9919957758537811]
+LEFT.P:  !!opencv-matrix
+   rows: 3
+   cols: 4
+   dt: d
+   data: [355.7217818777952, 0.0, 228.33328819274902, 0.0, 0.0, 355.7217818777952, 171.9202175140381, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+RIGHT.height: 360
+RIGHT.width: 640
+RIGHT.D: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [-0.3509049306582483, 0.09619835221283617, 0.00231937139140724, -0.0022537736498828348, 0.0]
+RIGHT.K: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [376.3283600219121, 0.0, 301.9057960617303, 0.0, 376.7221140320846, 170.02103216362718, 0.0, 0.0, 1.0]
+RIGHT.R:  !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.9927432657224458, 0.004141195673900179, 0.12018177424686309, -0.004822205816119199, 0.9999739209092685, 0.005376228455991147, -0.1201563760014444, -0.005916755845435337, 0.9927373455786103]
+RIGHT.P:  !!opencv-matrix
+   rows: 3
+   cols: 4
+   dt: d
+   data: [355.7217818777952, 0.0, 228.33328819274902, -36.00429585166807, 0.0, 355.7217818777952, 171.9202175140381, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+# ORB Extractor: Number of features per image
+ORBextractor.nFeatures: 1200
+
+# ORB Extractor: Scale factor between levels in the scale pyramid 	
+ORBextractor.scaleFactor: 1.2
+
+# ORB Extractor: Number of levels in the scale pyramid	
+ORBextractor.nLevels: 8
+
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast			
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 10
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize:2
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500
+
