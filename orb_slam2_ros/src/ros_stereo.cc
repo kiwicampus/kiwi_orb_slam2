@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 
 
 
-    MultiImagesMemmap video_map("main_stream", MEMMAP_PATH);
-    video_map.wait_until_available();
+    // MultiImagesMemmap video_map("main_stream", MEMMAP_PATH);
+    // video_map.wait_until_available();
 
     camera_info_manager::CameraInfoManager cinfo_manager(nh);
     get_rectify_params_calibration(map1, map2, cinfo_manager);
