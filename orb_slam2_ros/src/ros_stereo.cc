@@ -36,6 +36,8 @@
 #include "ROSPublisher.h"
 #include "utils.h"
 
+#include "easy_memmap.h"
+
 using namespace std;
 
 class ImageGrabber
@@ -72,7 +74,7 @@ int main(int argc, char **argv)
 
     stringstream ss(argv[3]);
 	ss >> boolalpha >> igb.do_rectify;
-    igb.do_rectify = true;
+    igb.do_rectify = false;
     if(igb.do_rectify)
     {      
         // Load settings related to stereo calibration
@@ -163,7 +165,7 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    do_rectify = true;
+    do_rectify = false;
     if(do_rectify)
     {
         cv::Mat imLeft, imRight;

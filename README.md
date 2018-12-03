@@ -167,11 +167,18 @@ This will create **libORB_SLAM2.so**  at *lib* folder and the executables **mono
 
 # 7. ROS Examples
 
+### Ros dependencies
+```
+sudo apt-get install ros-kinetic-octomap-ros
+```
+
 ### Building the nodes for mono, monoAR, stereo and RGB-D
 1. Add the path including *Examples/ROS/ORB_SLAM2* to the ROS_PACKAGE_PATH environment variable. Open .bashrc file and add at the end the following line. Replace PATH by the folder where you cloned ORB_SLAM2:
 
   ```
-  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH/ORB_SLAM2/Examples/ROS
+  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/home/charlie/data/kiwi/kiwi_orb_slam2/orb_slam2_ros
+  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/home/charlie/data/kiwi/kiwi_orb_slam2/orb_slam2_lib
+  source /home/charlie/data/kiwi/kiwi_orb_slam2/orb_slam2_lib/build/devel/setup.zsh
   ```
   
 2. Execute `build_ros.sh` script:
