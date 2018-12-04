@@ -169,7 +169,7 @@ This will create **libORB_SLAM2.so**  at *lib* folder and the executables **mono
 
 ### Ros dependencies
 ```
-sudo apt-get install ros-kinetic-octomap-ros
+sudo apt-get install ros-kinetic-octomap-ros ros-kinetic-image-geometry ros-kinetic-camera-info-manager  ros-kinetic-cv-bridge ros-kinetic-pcl-ros ros-kinetic-pcl-conversions
 ```
 
 ### Building the nodes for mono, monoAR, stereo and RGB-D
@@ -189,6 +189,10 @@ sudo apt-get install ros-kinetic-octomap-ros
   ```
   
 ### Running Monocular Node
+```
+source /home/charlie/data/kiwi/kiwi_orb_slam2/orb_slam2_ros/build/devel/setup.bash
+```
+
 For a monocular input from topic `/camera/image_raw` run node ORB_SLAM2/Mono. You will need to provide the vocabulary file and a settings file. See the monocular examples above.
 
   ```
