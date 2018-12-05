@@ -54,10 +54,10 @@ void get_rectify_params_calibration(Mat &map1, Mat &map2, camera_info_manager::C
 
 using namespace std;
 
-class ImageGrabber
+class SlamHandler
 {
 public:
-    ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh);
+    SlamHandler(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh, float reset_time);
 
     ORB_SLAM2::System* mpSLAM;
     bool do_rectify;
@@ -67,6 +67,7 @@ public:
     private:
         ros::Subscriber slam_state_sub;
         ros::Timer slam_state_timer;
+        float reset_time; // in seconds
         void orb_timer_cb(const ros::TimerEvent &);
         void orb_state_cb(const std_msgs::String::ConstPtr& msg);
 };
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "Stereo");
     ros::start();
 
-    if(argc != 4)
+    if(argc != 3)
     {
         cerr << endl << "Usage: rosrun ORB_SLAM2 Stereo path_to_vocabulary path_to_settings do_rectify" << endl;
         ros::shutdown();
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("/orb_slam2");
     ORB_SLAM2::System SLAM(make_unique<ROSSystemBuilder>(argv[1], argv[2], ORB_SLAM2::System::STEREO, freq, nh));
 
-    ImageGrabber igb(&SLAM, &nh);
+    SlamHandler slam(&SLAM, &nh, 5.0f);
 
 
     MultiImagesMemmap video_map("main_stream", MEMMAP_PATH);
@@ -113,8 +114,8 @@ int main(int argc, char **argv)
         remap(l_image, l_image_undist, map1, map2, INTER_LINEAR);
         remap(r_image, r_image_undist, map1, map2, INTER_LINEAR);
 
-        igb.mpSLAM->TrackStereo(l_image_undist,r_image_undist, ros::Time::now().toSec());
-        // ROS_INFO("Map changed: %d", igb.mpSLAM->MapChanged());
+        slam.mpSLAM->TrackStereo(l_image_undist,r_image_undist, ros::Time::now().toSec());
+        // ROS_INFO("Map changed: %d", slam.mpSLAM->MapChanged());
 
         }
         
@@ -135,22 +136,23 @@ int main(int argc, char **argv)
     return 0;
 }
 
-ImageGrabber::ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh):mpSLAM(pSLAM) {
+SlamHandler::SlamHandler(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh, float reset_time):
+    mpSLAM(pSLAM), reset_time(reset_time) {
     
-    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &ImageGrabber::orb_state_cb,this);
-    slam_state_timer = nh->createTimer(ros::Duration(10.0), &ImageGrabber::orb_timer_cb, this);
+    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &SlamHandler::orb_state_cb,this);
+    slam_state_timer = nh->createTimer(ros::Duration(10.0), &SlamHandler::orb_timer_cb, this);
 
 }
 
-void ImageGrabber::orb_timer_cb(const ros::TimerEvent &) {
+void SlamHandler::orb_timer_cb(const ros::TimerEvent &) {
     ROS_INFO("Resetting ORB slam");
     mpSLAM->Reset();
 
 }
 
-void ImageGrabber::orb_state_cb(const std_msgs::String::ConstPtr& msg){
+void SlamHandler::orb_state_cb(const std_msgs::String::ConstPtr& msg){
     if (msg->data.compare("OK") == 0){
-        slam_state_timer.setPeriod(ros::Duration(10.0f));
+        slam_state_timer.setPeriod(ros::Duration(reset_time));
         slam_state_timer.start();
     }
     // else
