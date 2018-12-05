@@ -25,10 +25,7 @@
 #include<chrono>
 
 #include<ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
-#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
+#include <std_msgs/String.h>
 
 #include<opencv2/core/core.hpp>
 
@@ -60,14 +57,20 @@ using namespace std;
 class ImageGrabber
 {
 public:
-    ImageGrabber(ORB_SLAM2::System* pSLAM):mpSLAM(pSLAM){}
-
-    void GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight);
+    ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh);
 
     ORB_SLAM2::System* mpSLAM;
     bool do_rectify;
     cv::Mat M1l,M2l,M1r,M2r;
+    
+
+    private:
+        ros::Subscriber slam_state_sub;
+        ros::Timer slam_state_timer;
+        void orb_timer_cb(const ros::TimerEvent &);
+        void orb_state_cb(const std_msgs::String::ConstPtr& msg);
 };
+
 
 int main(int argc, char **argv)
 {
@@ -86,7 +89,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("/orb_slam2");
     ORB_SLAM2::System SLAM(make_unique<ROSSystemBuilder>(argv[1], argv[2], ORB_SLAM2::System::STEREO, freq, nh));
 
-    ImageGrabber igb(&SLAM);
+    ImageGrabber igb(&SLAM, &nh);
 
 
     MultiImagesMemmap video_map("main_stream", MEMMAP_PATH);
@@ -97,12 +100,6 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
     ros::Rate r(30.0);
-
-    // message_filters::Subscriber<sensor_msgs::Image> left_sub(nodeHandler, "/camera/left/image_raw", 1);
-    // message_filters::Subscriber<sensor_msgs::Image> right_sub(nodeHandler, "/camera/right/image_raw", 1);
-    // typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-    // message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub);
-    // sync.registerCallback(boost::bind(&ImageGrabber::GrabStereo,&igb,_1,_2));
 
     SLAM.Start();
 
@@ -117,6 +114,7 @@ int main(int argc, char **argv)
         remap(r_image, r_image_undist, map1, map2, INTER_LINEAR);
 
         igb.mpSLAM->TrackStereo(l_image_undist,r_image_undist, ros::Time::now().toSec());
+        // ROS_INFO("Map changed: %d", igb.mpSLAM->MapChanged());
 
         }
         
@@ -137,47 +135,27 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight)
-{
-    // Copy the ros image message to cv::Mat.
-    cv_bridge::CvImageConstPtr cv_ptrLeft;
-    try
-    {
-        cv_ptrLeft = cv_bridge::toCvShare(msgLeft);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
-
-    cv_bridge::CvImageConstPtr cv_ptrRight;
-    try
-    {
-        cv_ptrRight = cv_bridge::toCvShare(msgRight);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
-    do_rectify = false;
-    if(do_rectify)
-    {
-        cv::Mat imLeft, imRight;
-        cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
-        cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
-        //cv::imshow( "Left", imLeft);
-        //cv::imshow( "Right", imRight);
-        mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
-    }
-    else
-    {
-        mpSLAM->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
-    }
+ImageGrabber::ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh):mpSLAM(pSLAM) {
+    
+    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &ImageGrabber::orb_state_cb,this);
+    slam_state_timer = nh->createTimer(ros::Duration(10.0), &ImageGrabber::orb_timer_cb, this);
 
 }
 
+void ImageGrabber::orb_timer_cb(const ros::TimerEvent &) {
+    ROS_INFO("Resetting ORB slam");
+    mpSLAM->Reset();
+
+}
+
+void ImageGrabber::orb_state_cb(const std_msgs::String::ConstPtr& msg){
+    if (msg->data.compare("OK") == 0){
+        slam_state_timer.setPeriod(ros::Duration(10.0f));
+        slam_state_timer.start();
+    }
+    // else
+    //     ROS_INFO("Call back %s", msg->data.c_str());
+}
 
 void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_manager::CameraInfoManager &cinfo_manager){
 
