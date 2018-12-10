@@ -111,6 +111,7 @@ System::System(std::unique_ptr<IBuilder> builder)
     //Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
     mpTracker->SetLoopClosing(mpLoopCloser);
+    mpTracker->SetSystem(this); // fixed reset after "track lost soon after initialisation" error in gitlab orb repo commit
 
     mpLocalMapper->SetTracker(mpTracker);
     mpLocalMapper->SetLoopCloser(mpLoopCloser);

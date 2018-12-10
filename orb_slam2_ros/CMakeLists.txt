@@ -64,17 +64,6 @@ set(LIBS
   orb_slam2_lib
 )
 
-# Node for monocular camera
-add_executable(Mono
-  src/ros_mono.cc
-  src/ROSPublisher.cpp
-)
-
-target_link_libraries(Mono
-  ${catkin_LIBRARIES}
-  ${LIBS}
-)
-
 # Node for monocular camera (Augmented Reality Demo)
 #add_executable(MonoAR
 #src/AR/ros_mono_ar.cc
@@ -98,13 +87,3 @@ target_link_libraries(Stereo
   ${LIBS}
 )
 
-# Node for RGB-D camera
-add_executable(RGBD
-  src/ros_rgbd.cc
-  src/ROSPublisher.cpp
-)
-
-target_link_libraries(RGBD
-  ${catkin_LIBRARIES}
-  ${LIBS}
-)
