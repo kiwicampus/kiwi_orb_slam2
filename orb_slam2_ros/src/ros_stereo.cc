@@ -26,6 +26,8 @@
 
 #include<ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
+#include <std_msgs/String.h>
+
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -95,7 +97,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("/orb_slam2");
     ORB_SLAM2::System SLAM(make_unique<ROSSystemBuilder>(argv[1], argv[2], ORB_SLAM2::System::STEREO, freq, nh));
 
-    ImageGrabber igb(&SLAM);
+    ImageGrabber igb(&SLAM, &nh, 5.0);
 
 
 
@@ -260,8 +262,8 @@ void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_ma
 ImageGrabber::ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh, float reset_time):
     mpSLAM(pSLAM), reset_time(reset_time) {
     
-    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &SlamHandler::orb_state_cb,this);
-    slam_state_timer = nh->createTimer(ros::Duration(10.0), &SlamHandler::orb_timer_cb, this);
+    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &ImageGrabber::orb_state_cb,this);
+    slam_state_timer = nh->createTimer(ros::Duration(10.0), &ImageGrabber::orb_timer_cb, this);
 
 }
 
