@@ -60,14 +60,23 @@ using namespace std;
 class ImageGrabber
 {
 public:
-    ImageGrabber(ORB_SLAM2::System* pSLAM):mpSLAM(pSLAM){}
+    ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh, float reset_time);
 
     void GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight);
 
     ORB_SLAM2::System* mpSLAM;
     bool do_rectify;
     cv::Mat M1l,M2l,M1r,M2r;
+
+    private:
+        ros::Subscriber slam_state_sub;
+        ros::Timer slam_state_timer;
+        float reset_time; // in seconds
+        void orb_timer_cb(const ros::TimerEvent &);
+        void orb_state_cb(const std_msgs::String::ConstPtr& msg);
 };
+
+
 
 int main(int argc, char **argv)
 {
@@ -245,3 +254,38 @@ void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_ma
   initUndistortRectifyMap(camm, dist, Mat(), camm, Size(cinfo_msg.width,cinfo_msg.height), CV_8UC1, map1, map2);
 
 }
+
+
+
+ImageGrabber::ImageGrabber(ORB_SLAM2::System* pSLAM, ros::NodeHandle* nh, float reset_time):
+    mpSLAM(pSLAM), reset_time(reset_time) {
+    
+    slam_state_sub = nh->subscribe("/orb_slam2/state_description", 100, &SlamHandler::orb_state_cb,this);
+    slam_state_timer = nh->createTimer(ros::Duration(10.0), &SlamHandler::orb_timer_cb, this);
+
+}
+
+void ImageGrabber::orb_timer_cb(const ros::TimerEvent &) {
+    ROS_INFO("Resetting ORB slam");
+    mpSLAM->Reset();
+
+}
+
+void ImageGrabber::orb_state_cb(const std_msgs::String::ConstPtr& msg){
+    if (msg->data.compare("OK") == 0){
+        slam_state_timer.setPeriod(ros::Duration(reset_time));
+        slam_state_timer.start();
+    }
+    // else
+    //     ROS_INFO("Call back %s", msg->data.c_str());
+}
+
+
+
+
+
+
+
+
+
+
