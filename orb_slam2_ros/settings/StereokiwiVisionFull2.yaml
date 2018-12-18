@@ -25,7 +25,7 @@ Camera.width: 640
 Camera.height: 360
 
 # Camera frames per second 
-Camera.fps: 30.0
+Camera.fps: 16.0
 
 # stereo baseline times fx
 Camera.bf: 37.982136206
@@ -46,7 +46,7 @@ LEFT.D: !!opencv-matrix
    rows: 1
    cols: 5
    dt: d
-   data: [-0.335524, 0.082469, 0.002508, -0.003777, 0.000000]
+   data: [-0.33552400281899764, 0.08246858015128353, 0.002508149353823619, -0.0037766974238169436, 0.0]
 LEFT.K: !!opencv-matrix
    rows: 3
    cols: 3
@@ -91,7 +91,7 @@ RIGHT.P:  !!opencv-matrix
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1500
+ORBextractor.nFeatures: 1000
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
@@ -103,8 +103,8 @@ ORBextractor.nLevels: 8
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
 # You can lower these values if your images have low contrast			
-ORBextractor.iniThFAST: 20
-ORBextractor.minThFAST: 10
+ORBextractor.iniThFAST: 30
+ORBextractor.minThFAST: 15
 
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters

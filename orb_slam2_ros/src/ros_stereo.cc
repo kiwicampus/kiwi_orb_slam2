@@ -69,6 +69,9 @@ public:
     ORB_SLAM2::System* mpSLAM;
     bool do_rectify;
     cv::Mat M1l,M2l,M1r,M2r;
+    cv::Mat M1l2,M2l2,M1r2,M2r2;
+    cv::Mat imLeft, imRight;
+    cv::Mat imLeft2, imRight2;
 
     private:
         ros::Subscriber slam_state_sub;
@@ -105,13 +108,15 @@ int main(int argc, char **argv)
     // video_map.wait_until_available();
 
     camera_info_manager::CameraInfoManager cinfo_manager(nh);
-    get_rectify_params_calibration(map1, map2, cinfo_manager);
+    // get_rectify_params_calibration(map1, map2, cinfo_manager);
 
+    // get_rectify_params_calibration(igb.M1l, igb.M2l, cinfo_manager);
+    // get_rectify_params_calibration(igb.M1r, igb.M2r, cinfo_manager);
 
 
     stringstream ss(argv[3]);
 	ss >> boolalpha >> igb.do_rectify;
-    igb.do_rectify = false;
+    igb.do_rectify = true;
     if(igb.do_rectify)
     {      
         // Load settings related to stereo calibration
@@ -150,9 +155,14 @@ int main(int argc, char **argv)
 
         cv::initUndistortRectifyMap(K_l,D_l,R_l,P_l.rowRange(0,3).colRange(0,3),cv::Size(cols_l,rows_l),CV_32F,igb.M1l,igb.M2l);
         cv::initUndistortRectifyMap(K_r,D_r,R_r,P_r.rowRange(0,3).colRange(0,3),cv::Size(cols_r,rows_r),CV_32F,igb.M1r,igb.M2r);
+
+        cv::initUndistortRectifyMap(K_l,D_l,Mat(),K_l,cv::Size(cols_l,rows_l),CV_32F,igb.M1l2,igb.M2l2);
+        cv::initUndistortRectifyMap(K_r,D_r,Mat(),K_r,cv::Size(cols_r,rows_r),CV_32F,igb.M1r2,igb.M2r2);
+
         ROS_INFO("rectifying image");
     }
     ROS_INFO("not rectifying image");
+
 
     ros::NodeHandle nodeHandler;
 
@@ -163,7 +173,25 @@ int main(int argc, char **argv)
     sync.registerCallback(boost::bind(&ImageGrabber::GrabStereo,&igb,_1,_2));
 
     SLAM.Start();
-    ros::spin();
+
+
+    cv::namedWindow("L",1);
+    cv::namedWindow("R",1);
+    ros::Rate r(30.0);
+    while (nodeHandler.ok())
+    {   
+        if (!igb.imLeft.empty()){
+        cv::imshow( "L", igb.imLeft);
+        cv::imshow( "R", igb.imLeft2);
+        waitKey(1);
+        }
+        
+        ros::spinOnce(); // check for incoming messages
+        r.sleep();
+    }
+
+
+    // ros::spin();
 
     // Stop all threads
     SLAM.Shutdown();
@@ -202,14 +230,16 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    do_rectify = false;
+    do_rectify = true;
     if(do_rectify)
     {
-        cv::Mat imLeft, imRight;
         cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
         cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
-        //cv::imshow( "Left", imLeft);
-        //cv::imshow( "Right", imRight);
+
+        cv::remap(cv_ptrLeft->image,imLeft2,M1l2,M2l2,cv::INTER_LINEAR);
+        cv::remap(cv_ptrRight->image,imRight2,M1r2,M2r2,cv::INTER_LINEAR);
+        // cv::imshow( "L", imLeft);
+        // cv::imshow( "R", imRight);
         mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
     }
     else
@@ -223,8 +253,10 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
 void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_manager::CameraInfoManager &cinfo_manager){
 
   // Calibration Parameters
-  Matx<double, 3, 3> camm;
-  Mat dist;  
+  Matx<double, 3, 3>;
+  Mat dist;
+//   Mat P;
+//   Mat R;   
 
   // Basic variables
   std::string camera_parameters_filename, camera_parameters_path;
@@ -251,6 +283,8 @@ void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_ma
 
   dist = model_.distortionCoeffs();
   camm = model_.intrinsicMatrix();
+//   P = model._projectionMatrix();
+//   R = model._projectionMatrix();
 
   // Calcualte actual map1 and map2 matrices
   initUndistortRectifyMap(camm, dist, Mat(), camm, Size(cinfo_msg.width,cinfo_msg.height), CV_8UC1, map1, map2);

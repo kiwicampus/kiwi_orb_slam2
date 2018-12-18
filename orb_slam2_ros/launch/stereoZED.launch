@@ -1,0 +1,10 @@
+<launch>
+    <node pkg="orb_slam2" type="Stereo" name="orb_slam2" args="$(find orb_slam2_lib)/Vocabulary/ORBvoc.txt $(find orb_slam2)/settings/ZedStereoVGA.yaml True" cwd="node" output="screen">
+       <!-- <remap from="/camera/left/image_raw" to="/camera/ir/image_raw" />
+        <remap from="/camera/right/image_raw" to="/camera/ir2/image_raw" /> -->
+    </node>
+
+   <!-- <node pkg="tf" type="static_transform_publisher" name="baselink_camera_broadcaster" args="0 0 0 0 0 0 /ORB_base_link /orb_slam2/camera 100"/> -->
+   <node pkg="tf" name="cameralinkToStereoCamera" type="static_transform_publisher" args="0.1 0 0 0 0 0 camera_link camera 20" respawn="true" output="screen"/>
+</launch>
+
