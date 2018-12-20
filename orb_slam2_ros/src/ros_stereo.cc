@@ -233,28 +233,31 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
     do_rectify = true;
     if(do_rectify)
     {
-        cv::remap(cv_ptrLeft->image.rowRange(120,360),imLeft,M1l,M2l,cv::INTER_LINEAR);
-        cv::remap(cv_ptrRight->image.rowRange(120,360),imRight,M1r,M2r,cv::INTER_LINEAR);
+
 
         cv::remap(cv_ptrLeft->image,imLeft2,M1l2,M2l2,cv::INTER_LINEAR);
         cv::remap(cv_ptrRight->image,imRight2,M1r2,M2r2,cv::INTER_LINEAR);
         // cv::imshow( "L", imLeft);
         // cv::imshow( "R", imRight);
 
+        cv::remap(cv_ptrLeft->image.rowRange(120,360),imLeft,M1l,M2l,cv::INTER_LINEAR);
+        cv::remap(cv_ptrRight->image.rowRange(120,360),imRight,M1r,M2r,cv::INTER_LINEAR);
+
+        // cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
+        // cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
 
         // // select a region of interest
-        // cv::Mat pRoi = imLeft(cv::Rect(0, 0, 640, 150));
+        // cv::Mat pRoi = imLeft(cv::Rect(0, 0, 640, 120));
         // // set roi to some rgb colour   
         // pRoi.setTo(cv::Scalar(0, 0, 0));
 
         // // select a region of interest
-        // cv::Mat pRoi2 = imRight(cv::Rect(0, 0, 640, 150));
+        // cv::Mat pRoi2 = imRight(cv::Rect(0, 0, 640, 120));
         // // set roi to some rgb colour   
         // pRoi2.setTo(cv::Scalar(0, 0, 0));
 
-
-        // mpSLAM->TrackStereo(imLeft.rowRange(150,360),imRight.rowRange(150,360),cv_ptrLeft->header.stamp.toSec());
         mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
+        // mpSLAM->TrackStereo(imLeft.rowRange(120,360),imRight.rowRange(120,360),cv_ptrLeft->header.stamp.toSec());
 
     }
     else
