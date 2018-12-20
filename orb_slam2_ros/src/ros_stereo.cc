@@ -240,18 +240,17 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         cv::remap(cv_ptrRight->image,imRight2,M1r2,M2r2,cv::INTER_LINEAR);
         // cv::imshow( "L", imLeft);
         // cv::imshow( "R", imRight);
-	//mpSLAM->TrackStereo(imLeft.rowRange(120,360),imRight.rowRange(120,360),cv_ptrLeft->header.stamp.toSec());
 
 
-        // select a region of interest
-        cv::Mat pRoi = imLeft(cv::Rect(0, 0, 640, 150));
-        // set roi to some rgb colour   
-        pRoi.setTo(cv::Scalar(0, 0, 0));
+        // // select a region of interest
+        // cv::Mat pRoi = imLeft(cv::Rect(0, 0, 640, 150));
+        // // set roi to some rgb colour   
+        // pRoi.setTo(cv::Scalar(0, 0, 0));
 
-        // select a region of interest
-        cv::Mat pRoi2 = imRight(cv::Rect(0, 0, 640, 150));
-        // set roi to some rgb colour   
-        pRoi2.setTo(cv::Scalar(0, 0, 0));
+        // // select a region of interest
+        // cv::Mat pRoi2 = imRight(cv::Rect(0, 0, 640, 150));
+        // // set roi to some rgb colour   
+        // pRoi2.setTo(cv::Scalar(0, 0, 0));
 
 
         // mpSLAM->TrackStereo(imLeft.rowRange(150,360),imRight.rowRange(150,360),cv_ptrLeft->header.stamp.toSec());
