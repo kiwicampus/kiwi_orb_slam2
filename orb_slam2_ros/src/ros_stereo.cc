@@ -175,14 +175,14 @@ int main(int argc, char **argv)
     SLAM.Start();
 
 
-    cv::namedWindow("L",1);
-    cv::namedWindow("R",1);
+    //cv::namedWindow("L",1);
+    //cv::namedWindow("R",1);
     ros::Rate r(30.0);
     while (nodeHandler.ok())
     {   
         if (!igb.imLeft.empty()){
-        cv::imshow( "L", igb.imLeft);
-        cv::imshow( "R", igb.imLeft2);
+        //cv::imshow( "L", igb.imLeft);
+        //cv::imshow( "R", igb.imLeft2);
         waitKey(1);
         }
         
@@ -233,13 +233,14 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
     do_rectify = true;
     if(do_rectify)
     {
-        cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
-        cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
+        cv::remap(cv_ptrLeft->image.rowRange(120,360),imLeft,M1l,M2l,cv::INTER_LINEAR);
+        cv::remap(cv_ptrRight->image.rowRange(120,360),imRight,M1r,M2r,cv::INTER_LINEAR);
 
         cv::remap(cv_ptrLeft->image,imLeft2,M1l2,M2l2,cv::INTER_LINEAR);
         cv::remap(cv_ptrRight->image,imRight2,M1r2,M2r2,cv::INTER_LINEAR);
         // cv::imshow( "L", imLeft);
         // cv::imshow( "R", imRight);
+	//mpSLAM->TrackStereo(imLeft.rowRange(120,360),imRight.rowRange(120,360),cv_ptrLeft->header.stamp.toSec());
         mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
     }
     else
@@ -253,7 +254,7 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
 void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_manager::CameraInfoManager &cinfo_manager){
 
   // Calibration Parameters
-  Matx<double, 3, 3>;
+  Matx<double, 3, 3> camm;
   Mat dist;
 //   Mat P;
 //   Mat R;   
