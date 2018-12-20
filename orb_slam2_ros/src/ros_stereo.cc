@@ -241,7 +241,22 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         // cv::imshow( "L", imLeft);
         // cv::imshow( "R", imRight);
 	//mpSLAM->TrackStereo(imLeft.rowRange(120,360),imRight.rowRange(120,360),cv_ptrLeft->header.stamp.toSec());
+
+
+        // select a region of interest
+        cv::Mat pRoi = imLeft(cv::Rect(0, 0, 640, 150));
+        // set roi to some rgb colour   
+        pRoi.setTo(cv::Scalar(0, 0, 0));
+
+        // select a region of interest
+        cv::Mat pRoi2 = imRight(cv::Rect(0, 0, 640, 150));
+        // set roi to some rgb colour   
+        pRoi2.setTo(cv::Scalar(0, 0, 0));
+
+
+        // mpSLAM->TrackStereo(imLeft.rowRange(150,360),imRight.rowRange(150,360),cv_ptrLeft->header.stamp.toSec());
         mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
+
     }
     else
     {
@@ -256,8 +271,8 @@ void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_ma
   // Calibration Parameters
   Matx<double, 3, 3> camm;
   Mat dist;
-//   Mat P;
-//   Mat R;   
+  Matx<double, 3, 4> P;
+  Matx33d R;   
 
   // Basic variables
   std::string camera_parameters_filename, camera_parameters_path;
@@ -284,11 +299,14 @@ void get_rectify_params_calibration(cv::Mat &map1, cv::Mat &map2, camera_info_ma
 
   dist = model_.distortionCoeffs();
   camm = model_.intrinsicMatrix();
-//   P = model._projectionMatrix();
-//   R = model._projectionMatrix();
+  P = model_.projectionMatrix();
+  R = model_.rotationMatrix();
 
   // Calcualte actual map1 and map2 matrices
   initUndistortRectifyMap(camm, dist, Mat(), camm, Size(cinfo_msg.width,cinfo_msg.height), CV_8UC1, map1, map2);
+
+   // For stereo
+   initUndistortRectifyMap(camm, dist, Mat(), camm, Size(cinfo_msg.width,cinfo_msg.height), CV_8UC1, map1, map2);
 
 }
 
