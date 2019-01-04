@@ -61,8 +61,8 @@ class SubscriberClass(object):
 
         self.yaw_offset = 0
 
-        # self.imu_file = create_csv("imu_odom.csv")
-        self.orb_file = create_csv("orb_odom.csv")
+        self.imu_file = create_csv("imu_odom1.csv")
+        self.orb_file = create_csv("orb_odom1.csv")
 
 
     def _tf_cb(self, data):
@@ -109,6 +109,9 @@ class SubscriberClass(object):
         #Z -> X
         #X -> -Y
         # self.raw_pose.position = Point(self.x,self.y,0.0)
+        #Working from bag
+        self.x = data.x
+        self.y = data.y
         self.raw_pose.position = Point(-self.y,0.0,self.x)
         self.raw_pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
 
@@ -119,7 +122,7 @@ class SubscriberClass(object):
         self.pubx.publish(self.x)
         self.puby.publish(-self.y)
 
-        # write_row(self.imu_file, [self.x,-self.y, self.timestamp])
+        write_row(self.imu_file, [self.x,-self.y, self.timestamp])
 
 
 
